@@ -5,7 +5,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 final class ChatServer {
@@ -23,17 +26,19 @@ final class ChatServer {
      * Right now it just creates the socketServer and adds a new ClientThread to a list to be handled
      */
     private void start() {
+
         try {
-            ServerSocket serverSocket = new ServerSocket(port);
-            Socket socket = serverSocket.accept();
-            Runnable r = new ClientThread(socket, uniqueId++);
-            Thread t = new Thread(r);
-            clients.add((ClientThread) r);
-            t.start();
-        } catch (IOException e) {
+                ServerSocket serverSocket = new ServerSocket(port);
+                Socket socket = serverSocket.accept();
+                Runnable r = new ClientThread(socket, uniqueId++);
+                Thread t = new Thread(r);
+                clients.add((ClientThread) r);
+                t.start();
+            }catch(IOException e){
             e.printStackTrace();
+             }
+
         }
-    }
 
     /*
      *  > java ChatServer
@@ -41,7 +46,13 @@ final class ChatServer {
      *  If the port number is not specified 1500 is used
      */
     public static void main(String[] args) {
-        ChatServer server = new ChatServer(1500);
+        ChatServer server;
+        if(args.length == 1) {
+            server = new ChatServer(Integer.parseInt(args[0]));
+        }
+        else{
+            server = new ChatServer(1500);
+        }
         server.start();
     }
 
@@ -76,20 +87,59 @@ final class ChatServer {
         @Override
         public void run() {
             // Read the username sent to you by client
-            try {
-                cm = (ChatMessage) sInput.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+            while (true) {
+                try {
+                    cm = (ChatMessage) sInput.readObject();
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(username + ": Ping");
+
+
+                // Send message back to the client
+                try {
+                    sOutput.writeObject("Pong");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            System.out.println(username + ": Ping");
-
-
-            // Send message back to the client
+        }
+        private boolean writeMessage(String msg){
             try {
-                sOutput.writeObject("Pong");
+                if(this.socket.getInputStream().read() != -1){
+                    sOutput.writeObject(msg);
+                    return true;
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+
+            return false;
         }
+        private void broadcast(String message){
+            DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+            Date time = new Date();
+            System.out.println(message + " " + dateFormat.format(time));
+            for(int i = 0; i < clients.size(); i++){
+                clients.get(i).writeMessage((message + " " + dateFormat.format(time)));
+
+            }
+        }
+    }
+
+
+
+
+    private void remove(int id){
+
+    }
+
+    public void run(){
+
+    }
+    private void close(){
+
     }
 }
