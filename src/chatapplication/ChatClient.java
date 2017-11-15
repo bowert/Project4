@@ -90,11 +90,15 @@ final class ChatClient {
         if(args.length == 3) {
             client = new ChatClient(args[2], Integer.parseInt(args[1]), args[0]);
         }
-        else if(args.length == 2) {
+        else if(args.length == 2)
+         {
             client = new ChatClient("localhost", Integer.parseInt(args[1]), args[0]);
-        }
-        else {
+         }
+        else if(args.length == 1) {
             client = new ChatClient("localhost", 1500, args[0]);
+        }
+        else{
+            client = new ChatClient("localhost", 1500, "Anonymous");
         }
 
 
@@ -102,11 +106,20 @@ final class ChatClient {
 
         // Send an empty message to the server
 
-        Scanner s = new Scanner(System.in);
-        String msg = s.nextLine();
+        while(true) {
+            Scanner s = new Scanner(System.in);
+            String msg = s.nextLine();
 
-        ChatMessage cMsg = new ChatMessage(0, msg);
-        client.sendMessage(cMsg);
+            ChatMessage cMsg;
+            if(msg.equals("/logout")){
+                cMsg = new ChatMessage(1, (args[0] + " has logged out."));
+            }
+            else
+            {
+                cMsg = new ChatMessage(0, msg);
+            }
+            client.sendMessage(cMsg);
+        }
     }
 
 

@@ -93,15 +93,19 @@ final class ChatServer {
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-                System.out.println(username + ": Ping");
-
-
-                // Send message back to the client
+                broadcast(username + " : " + cm.getMsg());
                 try {
-                    sOutput.writeObject("Pong");
+                    if (this.socket.getInputStream().read() != -1){
+                        System.out.println("connected NOW");
+                    }
+                    else
+                        System.out.println("not conned");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+
+                // Send message back to the client
             }
         }
         private boolean writeMessage(String msg){
@@ -124,7 +128,6 @@ final class ChatServer {
             System.out.println(message + " " + dateFormat.format(time));
             for(int i = 0; i < clients.size(); i++){
                 clients.get(i).writeMessage((message + " " + dateFormat.format(time)));
-
             }
         }
     }
@@ -133,12 +136,13 @@ final class ChatServer {
 
 
     private void remove(int id){
+        for(int i = 0; i < clients.size(); i++){
+                clients.remove(id);
+            }
+        }
 
-    }
 
-    public void run(){
 
-    }
     private void close(){
 
     }
