@@ -93,25 +93,14 @@ final class ChatServer {
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-                broadcast(username + " : " + cm.getMsg());
-                try {
-                    if (this.socket.getInputStream().read() != -1){
-                        System.out.println("connected NOW");
-                    }
-                    else
-                        System.out.println("not conned");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
+                broadcast(username + " : " + cm.getMessage());
                 // Send message back to the client
             }
         }
         private boolean writeMessage(String msg){
             try {
                 if(this.socket.getInputStream().read() != -1){
-                    sOutput.writeObject(msg);
+                    sOutput.writeObject((new ChatMessage(0, msg, null)));
                     return true;
                 }
 
@@ -122,12 +111,12 @@ final class ChatServer {
 
             return false;
         }
-        private void broadcast(String message){
+        private synchronized void broadcast(String message){
             DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
             Date time = new Date();
             System.out.println(message + " " + dateFormat.format(time));
             for(int i = 0; i < clients.size(); i++){
-                clients.get(i).writeMessage((message + " " + dateFormat.format(time)));
+                writeMessage((message + " " + dateFormat.format(time)));
             }
         }
     }

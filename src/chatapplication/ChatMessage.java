@@ -9,10 +9,12 @@ final class ChatMessage implements Serializable {
     private static final long serialVersionUID = 6898543889087L;
     private int type;
     private String msg;
+    private String recipient;
 
-    public ChatMessage(int type, String msg){
+    public ChatMessage(int type, String msg, String recipient){
         this.type = type;
         this.msg = msg;
+        this.recipient = recipient;
     }
 
 
@@ -20,9 +22,13 @@ final class ChatMessage implements Serializable {
         return type;
     }
 
-    public String getMsg(){
+    public String getMessage(){
         return msg;
     }
     // Here is where you should implement the chat message object.
     // Variables, Constructors, Methods, etc.
+
+    public String getRecipient(){
+        return recipient;
+    }
 }

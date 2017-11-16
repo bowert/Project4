@@ -111,12 +111,12 @@ final class ChatClient {
             String msg = s.nextLine();
 
             ChatMessage cMsg;
-            if(msg.equals("/logout")){
-                cMsg = new ChatMessage(1, (args[0] + " has logged out."));
+            if((msg.toLowerCase()).equals("/logout")){
+                cMsg = new ChatMessage(1, (args[0] + " has logged out."), null);
             }
             else
             {
-                cMsg = new ChatMessage(0, msg);
+                cMsg = new ChatMessage(0, msg, null);
             }
             client.sendMessage(cMsg);
         }
