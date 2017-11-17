@@ -1,10 +1,8 @@
-package chatapplication;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.text.DateFormat;
 import java.util.Scanner;
 
 
@@ -112,11 +110,19 @@ final class ChatClient {
             Scanner s = new Scanner(System.in);
             String msg = s.nextLine();
 
+            String[] direct = msg.split(" ");
+            String dmes = "";
             ChatMessage cMsg;
             if((msg.toLowerCase()).equals("/logout")){
                 cMsg = new ChatMessage(1, (args[0] + " has logged out."), null);
                 client.sendMessage(cMsg);
                 break nameofloop;
+            }
+            else if(direct[0].equals("/msg")){
+                for(int i = 2; i<direct.length; i++){
+                    dmes += direct[i];
+                }
+                cMsg = new ChatMessage(2, dmes, direct[1]);
             }
             else
             {

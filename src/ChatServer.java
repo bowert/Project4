@@ -1,5 +1,3 @@
-package chatapplication;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -94,10 +92,8 @@ final class ChatServer {
          */
         @Override
         public void run() {
-            System.out.println("using run method");
             // Read the username sent to you by client
             while (true) {
-                System.out.println("Past while(true)");
 
                 try {
                     cm = (ChatMessage) sInput.readObject();
@@ -105,10 +101,24 @@ final class ChatServer {
                     e.printStackTrace();
                 }
                 if(cm.getType() == 0) {
-                    broadcast(username + " : " + cm.getMessage());
+                    try {
+                        broadcast(username + " : " + cm.getMessage(), null);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 else if(cm.getType() == 1){
-                    broadcast(cm.getMessage());
+                    try {
+                        broadcast(cm.getMessage(), null);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else{
+                    try {
+                        broadcast(cm.getMessage(), cm.getRecipient());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 if(cm.getType() == 1) {
@@ -127,10 +137,15 @@ final class ChatServer {
             }
         }
 
-        private boolean writeMessage(String msg) {
+        private boolean writeMessage(String msg, String recipient) {
             try {
                 if (socket.isConnected()) {
-                    sOutput.writeObject((new ChatMessage(0, msg, null)));
+                    if(recipient == null) {
+                        sOutput.writeObject((new ChatMessage(0, msg, null)));
+                    }
+                    else{
+                        sOutput.writeObject((new ChatMessage(0, msg, recipient)));
+                    }
                 }
                 return true;
 
@@ -142,15 +157,36 @@ final class ChatServer {
             return false;
         }
 
-        private synchronized void broadcast(String message) {
-            DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-            Date time = new Date();
-            System.out.println(message + " " + dateFormat.format(time));
-            System.out.print(clients.size());
-            for (int i = 0; i < clients.size(); i++) {
-                clients.get(i).writeMessage((message + " " + dateFormat.format(time)) + "\n");
+        private synchronized void broadcast(String message, String recipient) throws IOException {
+                DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+                Date time = new Date();
+            ChatFilter flt = new ChatFilter(filterName);
+
+            if (recipient == null) {
+
+
+                System.out.println("filterni");
+                message = flt.filter(message);
+
+
+                System.out.println(message + " " + dateFormat.format(time));
+                for (int i = 0; i < clients.size(); i++) {
+                    clients.get(i).writeMessage((message + " " + dateFormat.format(time)) + "\n", null);
+                }
+            }
+            else{
+
+            flt.filter(message);
+
+                for(int i = 0; i < clients.size(); i++){
+                    if(recipient.equals(clients.get(i).username)){
+                        clients.get(i).writeMessage(message, recipient);
+                    }
+                }
             }
         }
+
+
 
 
         private void remove(int id) throws IOException {
@@ -158,7 +194,8 @@ final class ChatServer {
        /*     clients.get(id).sInput.close();
             clients.get(id).sOutput.close();
             clients.get(id).socket.close();
-       */     clients.remove(id);
+       */
+       clients.remove(id);
         }
 
 

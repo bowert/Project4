@@ -1,9 +1,5 @@
-package chatapplication;
 
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 final class ChatMessage implements Serializable {
     private static final long serialVersionUID = 6898543889087L;
