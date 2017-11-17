@@ -132,8 +132,8 @@ final class ChatClient {
         public void run() {
             while (true) {
                 try {
-                    String msg = (String) sInput.readObject();
-                    System.out.print(msg);
+                    ChatMessage msg = (ChatMessage) sInput.readObject();
+                    System.out.print(msg.getMessage());
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }

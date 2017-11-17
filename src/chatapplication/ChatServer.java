@@ -28,17 +28,17 @@ final class ChatServer {
     private void start() {
 
         try {
-                ServerSocket serverSocket = new ServerSocket(port);
-                Socket socket = serverSocket.accept();
-                Runnable r = new ClientThread(socket, uniqueId++);
-                Thread t = new Thread(r);
-                clients.add((ClientThread) r);
-                t.start();
-            }catch(IOException e){
+            ServerSocket serverSocket = new ServerSocket(port);
+            Socket socket = serverSocket.accept();
+            Runnable r = new ClientThread(socket, uniqueId++);
+            Thread t = new Thread(r);
+            clients.add((ClientThread) r);
+            t.start();
+        } catch (IOException e) {
             e.printStackTrace();
-             }
-
         }
+
+    }
 
     /*
      *  > java ChatServer
@@ -47,10 +47,9 @@ final class ChatServer {
      */
     public static void main(String[] args) {
         ChatServer server;
-        if(args.length == 1) {
+        if (args.length == 1) {
             server = new ChatServer(Integer.parseInt(args[0]));
-        }
-        else{
+        } else {
             server = new ChatServer(1500);
         }
         server.start();
@@ -68,6 +67,7 @@ final class ChatServer {
         int id;
         String username;
         ChatMessage cm;
+        int userNum = 0;
 
         private ClientThread(Socket socket, int id) {
             this.id = id;
@@ -75,7 +75,13 @@ final class ChatServer {
             try {
                 sOutput = new ObjectOutputStream(socket.getOutputStream());
                 sInput = new ObjectInputStream(socket.getInputStream());
-                username = (String) sInput.readObject();
+                String tempName = (String) sInput.readObject();
+                for(int i = 0; i < clients.size(); i++){
+                    if(tempName.equals(clients.get(i).username)){
+                        return;
+                    }
+                }
+                username = tempName;
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -86,23 +92,29 @@ final class ChatServer {
          */
         @Override
         public void run() {
+            System.out.println("using run method");
             // Read the username sent to you by client
             while (true) {
+                System.out.println("Past while(true)");
+
                 try {
                     cm = (ChatMessage) sInput.readObject();
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
+                System.out.println("hitting broadcast");
                 broadcast(username + " : " + cm.getMessage());
                 // Send message back to the client
             }
         }
-        private boolean writeMessage(String msg){
+
+        private boolean writeMessage(String msg) {
             try {
-                if(this.socket.getInputStream().read() != -1){
+                if (socket.isConnected()) {
+                    System.out.println("innards");
                     sOutput.writeObject((new ChatMessage(0, msg, null)));
-                    return true;
                 }
+                return true;
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -111,28 +123,27 @@ final class ChatServer {
 
             return false;
         }
-        private synchronized void broadcast(String message){
+
+        private synchronized void broadcast(String message) {
             DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
             Date time = new Date();
             System.out.println(message + " " + dateFormat.format(time));
-            for(int i = 0; i < clients.size(); i++){
-                writeMessage((message + " " + dateFormat.format(time)));
+            for (int i = 0; i < clients.size(); i++) {
+                clients.get(i).writeMessage((message + " " + dateFormat.format(time)) + "\n");
             }
         }
-    }
 
 
-
-
-    private void remove(int id){
-        for(int i = 0; i < clients.size(); i++){
+        private void remove(int id) {
+            for (int i = 0; i < clients.size(); i++) {
                 clients.remove(id);
             }
         }
 
 
+        private void close() {
 
-    private void close(){
+        }
 
     }
 }
