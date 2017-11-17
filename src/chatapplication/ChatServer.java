@@ -15,10 +15,12 @@ final class ChatServer {
     private static int uniqueId = 0;
     private final List<ClientThread> clients = new ArrayList<>();
     private final int port;
+    private final String filterName;
 
 
-    private ChatServer(int port) {
+    private ChatServer(int port, String filterName) {
         this.port = port;
+        this.filterName = filterName;
     }
 
     /*
@@ -48,9 +50,9 @@ final class ChatServer {
     public static void main(String[] args) {
         ChatServer server;
         if (args.length == 1) {
-            server = new ChatServer(Integer.parseInt(args[0]));
+            server = new ChatServer(Integer.parseInt(args[0]), "badwords.txt");
         } else {
-            server = new ChatServer(1500);
+            server = new ChatServer(1500, "badwords.txt");
         }
         server.start();
     }
@@ -102,8 +104,25 @@ final class ChatServer {
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-                System.out.println("hitting broadcast");
-                broadcast(username + " : " + cm.getMessage());
+                if(cm.getType() == 0) {
+                    broadcast(username + " : " + cm.getMessage());
+                }
+                else if(cm.getType() == 1){
+                    broadcast(cm.getMessage());
+                }
+
+                if(cm.getType() == 1) {
+                    for(int i =0; i < clients.size(); i++) {
+                        if (username.equals(clients.get(i).username)) {
+                            try {
+                                remove(i);
+                                break;
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
                 // Send message back to the client
             }
         }
@@ -111,7 +130,6 @@ final class ChatServer {
         private boolean writeMessage(String msg) {
             try {
                 if (socket.isConnected()) {
-                    System.out.println("innards");
                     sOutput.writeObject((new ChatMessage(0, msg, null)));
                 }
                 return true;
@@ -128,16 +146,19 @@ final class ChatServer {
             DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
             Date time = new Date();
             System.out.println(message + " " + dateFormat.format(time));
+            System.out.print(clients.size());
             for (int i = 0; i < clients.size(); i++) {
                 clients.get(i).writeMessage((message + " " + dateFormat.format(time)) + "\n");
             }
         }
 
 
-        private void remove(int id) {
-            for (int i = 0; i < clients.size(); i++) {
-                clients.remove(id);
-            }
+        private void remove(int id) throws IOException {
+
+       /*     clients.get(id).sInput.close();
+            clients.get(id).sOutput.close();
+            clients.get(id).socket.close();
+       */     clients.remove(id);
         }
 
 

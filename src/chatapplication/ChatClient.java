@@ -106,6 +106,8 @@ final class ChatClient {
 
         // Send an empty message to the server
 
+
+        nameofloop:
         while(true) {
             Scanner s = new Scanner(System.in);
             String msg = s.nextLine();
@@ -113,6 +115,8 @@ final class ChatClient {
             ChatMessage cMsg;
             if((msg.toLowerCase()).equals("/logout")){
                 cMsg = new ChatMessage(1, (args[0] + " has logged out."), null);
+                client.sendMessage(cMsg);
+                break nameofloop;
             }
             else
             {
